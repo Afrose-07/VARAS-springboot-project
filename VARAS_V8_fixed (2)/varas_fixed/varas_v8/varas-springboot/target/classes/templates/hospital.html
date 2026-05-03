@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hospital Login - VARAS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#071a0e,#0d2318,#0a2e1a);min-height:100vh;padding:24px;color:#fff}
+.wrap{max-width:820px;margin:0 auto}
+.pg{display:none}.pg.on{display:block;animation:fi .22s ease}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+button.back{display:inline-flex;align-items:center;gap:6px;color:#90d4a8;font-size:.9rem;cursor:pointer;border:none;background:none;padding:0;margin-bottom:20px}
+button.back:hover{color:#fff}
+
+.card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:28px}
+.card-sm{max-width:480px;margin:0 auto}
+
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.82rem;font-weight:600;color:#90ee90;margin-bottom:6px}
+.fg input{width:100%;padding:11px 44px 11px 14px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.17);border-radius:9px;color:#fff;font-size:.95rem;outline:none;transition:border .18s}
+.fg input:focus{border-color:#38a052;background:rgba(255,255,255,.12)}
+.fg input::placeholder{color:rgba(255,255,255,.28)}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:44px}
+.eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#90d4a8;font-size:1rem;line-height:1}
+.eye:hover{color:#fff}
+
+.btn{cursor:pointer;border:none;border-radius:9px;font-size:.9rem;font-weight:700;padding:11px 22px;transition:all .18s;display:inline-flex;align-items:center;gap:7px}
+.btn-grn{background:linear-gradient(135deg,#2d7a40,#1a5c2c);color:#fff;width:100%;justify-content:center;padding:13px}
+.btn-grn:hover{background:linear-gradient(135deg,#38a052,#2d7a40);transform:translateY(-1px)}
+.btn-sm-grn{background:linear-gradient(135deg,#2d7a40,#1a5c2c);color:#fff;padding:9px 20px;font-size:.84rem;border-radius:9px;border:none;cursor:pointer;font-weight:700;transition:all .18s;display:inline-flex;align-items:center;gap:6px}
+.btn-sm-grn:hover{background:linear-gradient(135deg,#38a052,#2d7a40)}
+.btn-ghost{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.17);color:#90d4a8;padding:8px 18px}
+.btn-ghost:hover{background:rgba(255,255,255,.12);color:#fff}
+.btn-cancel{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.17);color:#90d4a8;flex:1;justify-content:center;padding:11px}
+.btn-enter{background:linear-gradient(135deg,#2d7a40,#1a5c2c);color:#fff;flex:2;justify-content:center;padding:11px}
+.btn-enter:hover{background:linear-gradient(135deg,#38a052,#2d7a40)}
+
+.err{background:rgba(255,60,60,.17);border:1px solid rgba(255,60,60,.38);border-radius:8px;padding:10px 14px;color:#ff9090;font-size:.85rem;margin-top:10px;display:none}
+
+.dh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px}
+.dh h2{font-size:1.3rem;display:flex;align-items:center;gap:8px}
+.sub{color:#3a7050;font-size:.86rem;margin-bottom:20px}
+
+/* HOSPITAL DASHBOARD CARDS */
+.hosp-list{display:grid;gap:12px;margin-top:4px}
+.hc{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px;transition:all .2s}
+.hc:hover{background:rgba(45,122,64,.14);border-color:rgba(56,160,82,.38)}
+.hc .hn{font-size:1rem;font-weight:700;color:#c8f0d8;margin-bottom:3px}
+.hc .hcode{font-family:monospace;font-size:.82rem;color:#ffd700;margin-bottom:6px}
+.hc-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.hc-badge{font-size:.69rem;font-weight:700;padding:3px 9px;border-radius:12px;display:inline-flex;align-items:center;gap:3px}
+.hb-total{background:rgba(144,238,144,.1);color:#90ee90;border:1px solid rgba(144,238,144,.25)}
+.hb-pending{background:rgba(255,200,0,.13);color:#ffd700;border:1px solid rgba(255,200,0,.28)}
+.hb-high{background:rgba(255,68,68,.18);color:#ff9090;border:1px solid rgba(255,68,68,.35)}
+.hb-med{background:rgba(255,170,0,.15);color:#ffd070;border:1px solid rgba(255,170,0,.32)}
+.hb-low{background:rgba(68,187,68,.15);color:#90ee90;border:1px solid rgba(68,187,68,.32)}
+.hb-loading{color:#2a5038;font-size:.75rem;margin-top:4px}
+
+/* HOSPITAL VIEW */
+.h-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px}
+.h-pill{background:rgba(45,122,64,.22);border:1px solid rgba(56,160,82,.42);border-radius:20px;padding:6px 16px;font-size:.88rem;color:#90ee90;display:flex;align-items:center;gap:7px}
+
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:18px}
+.stat{background:rgba(255,255,255,.05);border-radius:11px;padding:13px 8px;text-align:center}
+.stat-n{font-size:1.7rem;font-weight:800}
+.stat-l{font-size:.7rem;color:#3a7050;margin-top:2px}
+.ct{color:#fff}.ch{color:#ff9090}.cm{color:#ffd070}.cl{color:#90ee90}.cp{color:#ffd700}
+
+.tabs{display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap}
+.tab{padding:8px 17px;font-size:.85rem;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#3a7050;cursor:pointer;transition:all .18s}
+.tab.on{background:rgba(45,122,64,.3);border-color:#38a052;color:#90ee90}
+
+.cc{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:15px 17px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.cc.h{border-left:3px solid #ff4444;background:rgba(255,68,68,.04)}
+.cc.m{border-left:3px solid #ffaa00}
+.cc.l{border-left:3px solid #44bb44}
+.ci{flex:1}
+.cid{font-weight:700;color:#ffd700;font-size:.92rem;margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.cm2{font-size:.8rem;color:#3a7050;line-height:1.7}
+.badge{display:inline-block;padding:2px 8px;border-radius:18px;font-size:.68rem;font-weight:700}
+.bh{background:rgba(255,68,68,.22);color:#ff9090;border:1px solid rgba(255,68,68,.45)}
+.bm{background:rgba(255,170,0,.22);color:#ffd070;border:1px solid rgba(255,170,0,.45)}
+.bl{background:rgba(68,187,68,.22);color:#90ee90;border:1px solid rgba(68,187,68,.45)}
+.bd{background:rgba(68,187,68,.18);color:#90ee90;border:1px solid rgba(68,187,68,.38)}
+.bp2{background:rgba(255,200,0,.12);color:#ffd700;border:1px solid rgba(255,200,0,.27)}
+.btn-accept{background:linear-gradient(135deg,#2d7a40,#1a5c2c);font-size:.8rem;padding:9px 15px;border-radius:8px;border:none;color:#fff;font-weight:700;cursor:pointer;white-space:nowrap;min-width:128px;transition:all .18s}
+.btn-accept:hover{background:linear-gradient(135deg,#38a052,#2d7a40)}
+.btn-accept:disabled{opacity:.5;cursor:not-allowed}
+.done-box{background:rgba(45,122,64,.18);border:1px solid rgba(56,160,82,.38);border-radius:9px;padding:9px 13px;text-align:center;min-width:128px;font-size:.79rem;color:#90ee90;font-weight:700}
+.taken-box{background:rgba(255,170,0,.09);border:1px solid rgba(255,170,0,.32);border-radius:9px;padding:9px 13px;text-align:center;min-width:128px;font-size:.77rem;color:#ffd070}
+.empty{text-align:center;color:#2a5038;padding:38px;font-size:.92rem}
+.hs{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:13px}
+.hs h3{color:#90ee90;font-size:.9rem}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(5px)}
+.modal{background:#081a0e;border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:28px;width:370px;max-width:94vw;animation:popIn .2s ease}
+@keyframes popIn{from{transform:scale(.93);opacity:0}to{transform:scale(1);opacity:1}}
+.modal h3{font-size:1.15rem;font-weight:800;margin-bottom:3px}
+.modal .msub{font-size:.8rem;color:#2a5038;margin-bottom:18px}
+.modal .msub strong{color:#ffd700}
+.modal-acts{display:flex;gap:9px;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<button class="back" onclick="handleBack()">← Back</button>
+
+<!-- PAGE 1: GENERAL HOSPITAL LOGIN (hospital / 123) -->
+<div id="pg1" class="pg on">
+  <div class="card card-sm">
+    <div style="text-align:center;margin-bottom:6px;font-size:2rem">🏥</div>
+    <h2 style="text-align:center;font-size:1.5rem;margin-bottom:4px">Hospital Login</h2>
+    <p style="text-align:center;color:#2a5038;font-size:.84rem;margin-bottom:20px">Login to view all hospital dashboards</p>
+
+    <div class="fg">
+      <label>Username</label>
+      <input type="text" id="u1" placeholder="hospital" autocomplete="off" onkeydown="if(event.key==='Enter')login1()">
+    </div>
+    <div class="fg">
+      <label>Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="p1" placeholder="••••" onkeydown="if(event.key==='Enter')login1()">
+        <button class="eye" onclick="toggleEye('p1',this)">👁</button>
+      </div>
+    </div>
+    <button class="btn btn-grn" onclick="login1()">🔐 Login</button>
+    <div class="err" id="e1"></div>
+  </div>
+</div>
+
+<!-- PAGE 2: HOSPITAL DASHBOARD — 5 HOSPITALS -->
+<div id="pg2" class="pg">
+  <div class="card">
+    <div class="dh">
+      <h2>🏥 Hospital Dashboard</h2>
+      <button class="btn btn-ghost" onclick="goTo('pg1')">← Logout</button>
+    </div>
+    <p class="sub">Select a hospital to view its cases and history</p>
+    <div class="hosp-list">
+
+      <div class="hc">
+        <div>
+          <div class="hn">Tirunelveli Medical College Hospital</div>
+          <div class="hcode">tvlmch</div>
+          <div id="dh-tvlmch"><span class="hb-loading">⏳ Loading...</span></div>
+        </div>
+        <button class="btn-sm-grn" onclick="openHospModal('Tirunelveli Medical College Hospital','tvlmch')">Login →</button>
+      </div>
+
+      <div class="hc">
+        <div>
+          <div class="hn">Getwell Hospital</div>
+          <div class="hcode">getwell</div>
+          <div id="dh-getwell"><span class="hb-loading">⏳ Loading...</span></div>
+        </div>
+        <button class="btn-sm-grn" onclick="openHospModal('Getwell Hospital','getwell')">Login →</button>
+      </div>
+
+      <div class="hc">
+        <div>
+          <div class="hn">Govt Hospital Palayamkottai</div>
+          <div class="hcode">govtpalayam</div>
+          <div id="dh-govtpalayam"><span class="hb-loading">⏳ Loading...</span></div>
+        </div>
+        <button class="btn-sm-grn" onclick="openHospModal('Government Hospital Palayamkottai','govtpalayam')">Login →</button>
+      </div>
+
+      <div class="hc">
+        <div>
+          <div class="hn">Govt Hospital Pettai</div>
+          <div class="hcode">govtpettai</div>
+          <div id="dh-govtpettai"><span class="hb-loading">⏳ Loading...</span></div>
+        </div>
+        <button class="btn-sm-grn" onclick="openHospModal('Government Hospital Pettai','govtpettai')">Login →</button>
+      </div>
+
+      <div class="hc">
+        <div>
+          <div class="hn">Sangeetha Hospital</div>
+          <div class="hcode">sangeetha</div>
+          <div id="dh-sangeetha"><span class="hb-loading">⏳ Loading...</span></div>
+        </div>
+        <button class="btn-sm-grn" onclick="openHospModal('Sangeetha Hospital','sangeetha')">Login →</button>
+      </div>
+
+      <div class="hc">
+        <div>
+          <div class="hn">Melapalayam Govt Hospital</div>
+          <div class="hcode">melapalayam</div>
+          <div id="dh-melapalayam"><span class="hb-loading">⏳ Loading...</span></div>
+        </div>
+        <button class="btn-sm-grn" onclick="openHospModal('Melapalayam Government Hospital','melapalayam')">Login →</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3: HOSPITAL CASES VIEW -->
+<div id="pg3" class="pg">
+  <div class="card">
+    <div class="h-topbar">
+      <div class="h-pill">🏥 <span id="hospLabel"></span></div>
+      <button class="btn btn-ghost" onclick="goTo('pg2')">← Back to Dashboard</button>
+    </div>
+    <div class="stats" id="statsGrid"></div>
+    <div class="tabs">
+      <button class="tab on" id="tA" onclick="switchTab('A')">📋 Active Cases</button>
+      <button class="tab"    id="tH" onclick="switchTab('H')">📜 My Hospital History</button>
+    </div>
+    <div id="pA"></div>
+    <div id="pH" style="display:none"></div>
+  </div>
+</div>
+</div>
+
+<!-- HOSPITAL LOGIN MODAL -->
+<div id="hospModal" class="modal-bg" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3 id="mTitle">Hospital Login</h3>
+    <p class="msub">Enter hospital password: <strong>108</strong></p>
+    <div class="fg" style="margin-bottom:6px">
+      <label>Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="mPw" placeholder="••••" onkeydown="if(event.key==='Enter')doHospLogin()">
+        <button class="eye" onclick="toggleEye('mPw',this)">👁</button>
+      </div>
+    </div>
+    <div class="err" id="mErr"></div>
+    <div class="modal-acts">
+      <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-enter"  onclick="doHospLogin()">🔐 Enter Hospital</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State
+let hosp = {name:'',user:''};
+let curPg = 'pg1';
+
+const DH_MAP = [
+  {key:'tvlmch',      name:'Tirunelveli Medical College Hospital'},
+  {key:'getwell',     name:'Getwell Hospital'},
+  {key:'govtpalayam', name:'Government Hospital Palayamkottai'},
+  {key:'govtpettai',  name:'Government Hospital Pettai'},
+  {key:'sangeetha',   name:'Sangeetha Hospital'},
+  {key:'melapalayam', name:'Melapalayam Government Hospital'}
+];
+
+// ── Nav
+function goTo(id){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  curPg=id; window.scrollTo(0,0);
+}
+function handleBack(){
+  const order=['pg1','pg2','pg3'];
+  const i=order.indexOf(curPg);
+  if(i<=0) window.location.href='/'; else goTo(order[i-1]);
+}
+
+function toggleEye(id,btn){
+  const el=document.getElementById(id);
+  el.type=el.type==='password'?'text':'password';
+  btn.textContent=el.type==='password'?'👁':'🙈';
+}
+
+function showErr(id,msg){
+  const el=document.getElementById(id);
+  el.textContent='❌ '+msg; el.style.display='block';
+  setTimeout(()=>el.style.display='none',4000);
+}
+
+// PAGE 1 login: hospital / 123
+function login1(){
+  const u=document.getElementById('u1').value.trim();
+  const p=document.getElementById('p1').value.trim();
+  if(u==='hospital'&&p==='123'){goTo('pg2');loadDashboardSummary();}
+  else showErr('e1','Invalid credentials. Username: hospital  Password: 123');
+}
+
+// Dashboard summary — active notified cases for each hospital
+function loadDashboardSummary(){
+  DH_MAP.forEach(({key,name})=>{
+    const el=document.getElementById('dh-'+key);
+    if(el) el.innerHTML='<span class="hb-loading">⏳ Loading...</span>';
+    fetch('/api/hospital/my-cases',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:'hospital',password:'123',hospitalName:name})
+    }).then(r=>r.json()).then(d=>{
+      const cases=d.cases||[];
+      const total=cases.length;
+      const high=cases.filter(c=>c.severity==='HIGH').length;
+      const med=cases.filter(c=>c.severity==='MEDIUM').length;
+      const low=cases.filter(c=>c.severity==='LOW').length;
+      if(!el) return;
+      if(total===0){
+        el.innerHTML='<div class="hc-badges"><span class="hc-badge hb-loading">📭 No active cases</span></div>';
+        return;
+      }
+      let html='<div class="hc-badges">';
+      html+=`<span class="hc-badge hb-total">📋 ${total} Case${total!==1?'s':''}</span>`;
+      if(high>0) html+=`<span class="hc-badge hb-high">🔴 ${high} High</span>`;
+      if(med>0)  html+=`<span class="hc-badge hb-med">🟡 ${med} Medium</span>`;
+      if(low>0)  html+=`<span class="hc-badge hb-low">🟢 ${low} Low</span>`;
+      html+='</div>';
+      el.innerHTML=html;
+    }).catch(()=>{if(el)el.innerHTML='<span class="hb-loading">—</span>';});
+  });
+}
+
+// Hospital modal
+function openHospModal(name,user){
+  hosp={name,user};
+  document.getElementById('mTitle').textContent='🔐 '+name;
+  document.getElementById('mPw').value='';
+  document.getElementById('mErr').style.display='none';
+  document.getElementById('hospModal').style.display='flex';
+  setTimeout(()=>document.getElementById('mPw').focus(),80);
+}
+function closeModal(){document.getElementById('hospModal').style.display='none';}
+
+function doHospLogin(){
+  const pw=document.getElementById('mPw').value.trim();
+  if(pw==='108'){closeModal();loadHospital();}
+  else showErr('mErr','Wrong password. Hospital password is 108');
+}
+
+// Load active cases for this hospital
+function loadHospital(){
+  document.getElementById('hospLabel').textContent=hosp.name;
+  document.getElementById('pA').innerHTML='<div class="empty">⏳ Loading cases...</div>';
+  document.getElementById('statsGrid').innerHTML='';
+  document.getElementById('tA').className='tab on';
+  document.getElementById('tH').className='tab';
+  document.getElementById('pA').style.display='block';
+  document.getElementById('pH').style.display='none';
+  goTo('pg3');
+  fetch('/api/hospital/my-cases',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:'hospital',password:'123',hospitalName:hosp.name})
+  }).then(r=>r.json()).then(d=>{
+    if(d.success){renderStats(d.cases||[]);renderCases(d.cases||[]);}
+    else document.getElementById('pA').innerHTML='<div class="empty">❌ Failed to load cases.</div>';
+  }).catch(()=>document.getElementById('pA').innerHTML='<div class="empty">❌ Server error.</div>');
+}
+
+// Stats grid
+function renderStats(cases){
+  const h=cases.filter(c=>c.severity==='HIGH').length,
+        m=cases.filter(c=>c.severity==='MEDIUM').length,
+        l=cases.filter(c=>c.severity==='LOW').length,
+        p=cases.filter(c=>!c.status||c.status==='PENDING').length;
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="stat"><div class="stat-n ct">${cases.length}</div><div class="stat-l">Total</div></div>
+    <div class="stat"><div class="stat-n ch">${h}</div><div class="stat-l">🔴 High</div></div>
+    <div class="stat"><div class="stat-n cm">${m}</div><div class="stat-l">🟡 Medium</div></div>
+    <div class="stat"><div class="stat-n cl">${l}</div><div class="stat-l">🟢 Low</div></div>
+    <div class="stat"><div class="stat-n cp">${p}</div><div class="stat-l">⏳ Pending</div></div>`;
+}
+
+// Build one case card
+function mkCard(c){
+  const sv=(c.severity||'LOW').toUpperCase();
+  const si=sv==='HIGH'?'🚨 CRITICAL':sv==='MEDIUM'?'⚠️ URGENT':'📋 NORMAL';
+  const isAcc=c.status&&c.status.startsWith('ACCEPTED');
+  const mx=isAcc&&c.status.match(/ACCEPTED by (.+)/);
+  const by=mx?mx[1]:(isAcc?'Another Hospital':'');
+  const mine=by===hosp.name;
+  let action;
+  if(!isAcc)    action=`<button class="btn-accept" onclick="acceptCase('${c.caseId}',this)">🚑 Accept Patient</button>`;
+  else if(mine) action=`<div class="done-box">✅ Accepted<br><span style="font-size:.7rem;color:#3a7050">by you</span></div>`;
+  else          action=`<div class="taken-box">⚠️ Accepted by<br><strong style="color:#90ee90">${by}</strong></div>`;
+  const sc=sv==='HIGH'?'h':sv==='MEDIUM'?'m':'l';
+  const bc=sv==='HIGH'?'bh':sv==='MEDIUM'?'bm':'bl';
+  return `<div class="cc ${sc}">
+    <div class="ci">
+      <div class="cid">${c.caseId} <span class="badge ${bc}">${si}</span> <span class="badge ${isAcc?'bd':'bp2'}">${isAcc?'ACCEPTED':'PENDING'}</span></div>
+      <div class="cm2">📍 ${c.village||'—'} &nbsp;|&nbsp; 📮 ${c.pincode||'—'} &nbsp;|&nbsp; 🚗 ${c.vehicleNumber||c.vehicle||'—'}
+      ${isAcc?`<br>✅ Accepted by: <strong style="color:#90ee90">${by}</strong>`:''}
+      </div>
+    </div>
+    <div id="ha-${c.caseId}">${action}</div>
+  </div>`;
+}
+
+function renderCases(cases){
+  const el=document.getElementById('pA');
+  el.innerHTML=cases.length?cases.map(mkCard).join(''):'<div class="empty">📭 No accident cases assigned to your hospital right now.</div>';
+}
+
+// Accept patient
+function acceptCase(caseId,btn){
+  btn.disabled=true; btn.textContent='⏳ Accepting...';
+  fetch(`/api/hospital/accept-named/${caseId}`,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({hospitalName:hosp.name})
+  }).then(r=>{const s=r.status;return r.json().then(d=>({s,d}));})
+  .then(({s,d})=>{
+    const div=document.getElementById('ha-'+caseId);
+    if(s===200&&d.success){
+      div.innerHTML=`<div class="done-box">✅ Accepted<br><span style="font-size:.7rem;color:#3a7050">by you</span></div>`;
+      setTimeout(refreshCases,900);
+    }else if(s===409){
+      const m2=(d.message||'').match(/accepted by (.+)/i);
+      div.innerHTML=`<div class="taken-box">⚠️ Already Accepted<br><strong style="color:#90ee90">${m2?m2[1]:'Another Hospital'}</strong></div>`;
+      setTimeout(refreshCases,1200);
+    }else{btn.disabled=false;btn.textContent='🚑 Accept Patient';alert('Error: '+(d.message||'Failed'));}
+  }).catch(()=>{btn.disabled=false;btn.textContent='🚑 Accept Patient';alert('Server error.');});
+}
+
+function refreshCases(){
+  fetch('/api/hospital/my-cases',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:'hospital',password:'123',hospitalName:hosp.name})
+  }).then(r=>r.json()).then(d=>{if(d.success){renderStats(d.cases||[]);renderCases(d.cases||[]);}});
+}
+
+// Tabs — only Active Cases + My Hospital History
+function switchTab(t){
+  ['A','H'].forEach(x=>{
+    document.getElementById('t'+x).className='tab'+(x===t?' on':'');
+    document.getElementById('p'+x).style.display=x===t?'block':'none';
+  });
+  if(t==='H') loadHistory();
+}
+
+// History — only THIS hospital's accepted cases
+function loadHistory(){
+  const el=document.getElementById('pH');
+  el.innerHTML='<div class="empty">⏳ Loading history...</div>';
+  fetch('/api/hospital/history',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:'hospital',password:'123',hospitalName:hosp.name})
+  }).then(r=>r.json()).then(d=>{
+    const hist=d.history||[];
+    if(!hist.length){
+      el.innerHTML='<div class="empty">📭 No accepted cases for this hospital yet.</div>';
+      return;
+    }
+    const h=hist.filter(c=>c.severity==='HIGH').length,
+          m=hist.filter(c=>c.severity==='MEDIUM').length,
+          l=hist.filter(c=>c.severity==='LOW').length;
+    el.innerHTML=`<div class="hs">
+      <h3>✅ ${hosp.name} — Accepted Cases (${hist.length})</h3>
+      <span class="badge bh">🔴 ${h} High</span>
+      <span class="badge bm">🟡 ${m} Medium</span>
+      <span class="badge bl">🟢 ${l} Low</span>
+    </div>`
+    +hist.map(c=>{
+      const sv=(c.severity||'LOW').toUpperCase();
+      const sc=sv==='HIGH'?'h':sv==='MEDIUM'?'m':'l';
+      const bc=sv==='HIGH'?'bh':sv==='MEDIUM'?'bm':'bl';
+      return `<div class="cc ${sc}">
+        <div class="ci">
+          <div class="cid">${c.caseId} <span class="badge ${bc}">${sv}</span></div>
+          <div class="cm2">
+            📍 ${c.village||'—'} &nbsp;|&nbsp; 📮 ${c.pincode||'—'} &nbsp;|&nbsp; 🚗 ${c.vehicle||c.vehicleNumber||'—'}<br>
+            🕐 ${c.reportedAt||'—'} &nbsp;|&nbsp; Status: <strong style="color:#90ee90">${c.status||'—'}</strong>
+          </div>
+        </div>
+        <div class="done-box">✅ Accepted</div>
+      </div>`;
+    }).join('');
+  }).catch(()=>el.innerHTML='<div class="empty">❌ Failed to load history.</div>');
+}
+</script>
+</body>
+</html>

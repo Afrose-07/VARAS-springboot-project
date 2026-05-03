@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Accident - VARAS</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); min-height: 100vh; padding: 30px; }
+        .container { max-width: 700px; margin: 0 auto; color: white; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; color: #a8c0ff; text-decoration: none; margin-bottom: 20px; font-size: 0.95rem; }
+        .back-btn:hover { color: white; }
+        .card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 30px; }
+        .card h2 { font-size: 1.6rem; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 6px; color: #a8c0ff; font-size: 0.9rem; font-weight: 600; }
+        input, select { width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+        input:focus, select:focus { border-color: rgba(100,150,255,0.7); background: rgba(255,255,255,0.15); }
+        select option { background: #1a1a2e; color: white; }
+        .submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #e53e3e, #c53030); border: none; border-radius: 8px; color: white; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
+        .submit-btn:hover { background: linear-gradient(135deg, #fc5c5c, #e53e3e); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(229,62,62,0.4); }
+        .alert { padding: 14px 18px; border-radius: 8px; margin-top: 20px; display: none; }
+        .alert.success { background: rgba(60,200,100,0.2); border: 1px solid rgba(60,200,100,0.4); color: #90ee90; }
+        .alert.error   { background: rgba(255,60,60,0.2);  border: 1px solid rgba(255,60,60,0.4);  color: #ff9090; }
+        .alert.warning { background: rgba(255,200,0,0.2);  border: 1px solid rgba(255,200,0,0.4);  color: #ffd700; }
+        .severity-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .severity-btn { padding: 10px; border: 2px solid rgba(255,255,255,0.2); border-radius: 8px; background: transparent; color: white; cursor: pointer; text-align: center; font-size: 0.9rem; transition: all 0.2s; }
+        .severity-btn:hover { background: rgba(255,255,255,0.1); }
+        .severity-btn.selected-high   { border-color: #ff4444; background: rgba(255,68,68,0.2); }
+        .severity-btn.selected-medium { border-color: #ffaa00; background: rgba(255,170,0,0.2); }
+        .severity-btn.selected-low    { border-color: #44bb44; background: rgba(68,187,68,0.2); }
+
+        /* Pincode TVL select */
+        .pincode-select-wrap { position: relative; }
+        .pincode-tabs { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .pincode-tab { padding: 5px 12px; font-size: 0.82rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: #a8c0ff; cursor: pointer; transition: all 0.2s; }
+        .pincode-tab:hover { background: rgba(255,255,255,0.12); }
+        .pincode-tab.active { background: rgba(100,150,255,0.25); border-color: rgba(100,150,255,0.6); color: white; }
+
+        /* Nearby info box */
+        .nearby-box { background: rgba(60,100,200,0.12); border: 1px solid rgba(100,150,255,0.3); border-radius: 10px; padding: 14px 16px; margin-top: 12px; display: none; }
+        .nearby-box h4 { color: #a8c0ff; font-size: 0.88rem; margin-bottom: 8px; }
+        .nearby-row { display: flex; gap: 16px; flex-wrap: wrap; }
+        .nearby-item { flex: 1; min-width: 180px; }
+        .nearby-label { font-size: 0.75rem; color: #7a90c0; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+        .nearby-value { font-size: 0.88rem; color: #d0e0ff; line-height: 1.6; }
+
+        /* Success info */
+        .success-box { background: rgba(60,200,100,0.12); border: 1px solid rgba(60,200,100,0.3); border-radius: 10px; padding: 16px; margin-top: 16px; display: none; }
+        .success-box h4 { color: #90ee90; margin-bottom: 10px; }
+        .success-box p { color: #c0eec0; font-size: 0.9rem; line-height: 1.8; }
+        .case-id-big { font-size: 1.3rem; font-weight: 800; color: #ffd700; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/" class="back-btn">← Back to Home</a>
+    <div class="card">
+        <h2>📋 Accident Report Form</h2>
+
+        <div class="form-group">
+            <label>👤 Reporter Name</label>
+            <input type="text" id="reporterName" placeholder="Enter your full name">
+        </div>
+
+        <div class="form-group">
+            <label>🚗 Transport Type</label>
+            <select id="transport">
+                <option value="">Select transport type</option>
+                <option value="car">Car</option>
+                <option value="bike">Bike / Two-wheeler</option>
+                <option value="bus">Bus</option>
+                <option value="truck">Truck / Lorry</option>
+                <option value="auto">Auto Rickshaw</option>
+                <option value="jeep">Jeep</option>
+                <option value="van">Van / Omni</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>🚙 Vehicle Number <span style="color:#6a7fa8;font-weight:400;">(TN72XXXX format)</span></label>
+            <input type="text" id="vehicleNumber" placeholder="e.g. TN72AB1234" style="text-transform:uppercase" maxlength="12">
+        </div>
+
+        <!-- Pincode — TVL 5 pincodes as quick tabs + manual input -->
+        <div class="form-group">
+            <label>📮 Pincode <span style="color:#6a7fa8;font-weight:400;">(Select or type)</span></label>
+            <div class="pincode-tabs">
+                <span class="pincode-tab" onclick="selectPincode('627001',this)">627001 — Junction</span>
+                <span class="pincode-tab" onclick="selectPincode('627002',this)">627002 — Palayamkottai</span>
+                <span class="pincode-tab" onclick="selectPincode('627004',this)">627004 — Pettai</span>
+                <span class="pincode-tab" onclick="selectPincode('627005',this)">627005 — Melapalayam</span>
+                <span class="pincode-tab" onclick="selectPincode('627006',this)">627006 — TVL Town</span>
+            </div>
+            <input type="text" id="pincode" placeholder="Enter 6-digit pincode" maxlength="6"
+                   oninput="onPincodeInput(this.value)">
+
+            <!-- Nearby PS and Hospital auto-show -->
+            <div class="nearby-box" id="nearbyBox">
+                <h4>📍 Nearby Services will be notified:</h4>
+                <div class="nearby-row">
+                    <div class="nearby-item">
+                        <div class="nearby-label">👮 Police Station</div>
+                        <div class="nearby-value" id="nearbyPolice">—</div>
+                    </div>
+                    <div class="nearby-item">
+                        <div class="nearby-label">🏥 Hospital</div>
+                        <div class="nearby-value" id="nearbyHospital">—</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Village dropdown — loads based on pincode -->
+        <div class="form-group" id="villageGroup" style="display:none">
+            <label>🏘️ Village / Area</label>
+            <select id="village">
+                <option value="">Select village</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>⚠️ Severity</label>
+            <div class="severity-options">
+                <div class="severity-btn" onclick="selectSeverity('low')">🟢 Low</div>
+                <div class="severity-btn" onclick="selectSeverity('medium')">🟡 Medium</div>
+                <div class="severity-btn" onclick="selectSeverity('high')">🔴 High</div>
+            </div>
+            <input type="hidden" id="severity">
+        </div>
+
+        <button class="submit-btn" onclick="submitReport()">🚨 REPORT ACCIDENT</button>
+
+        <div class="alert" id="alertBox"></div>
+
+        <!-- Success box with notified PS + Hospital -->
+        <div class="success-box" id="successBox">
+            <h4>✅ Accident Reported Successfully!</h4>
+            <p id="successContent"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Fixed TVL 5 pincode data — police + hospital mapping
+    const PINCODE_MAP = {
+        '627001': {
+            area: 'Tirunelveli Junction',
+            police: ['Tirunelveli Junction Police Station'],
+            hospitals: ['Tirunelveli Medical College Hospital', 'Getwell Hospital']
+        },
+        '627002': {
+            area: 'Palayamkottai',
+            police: ['Palayamkottai Police Station'],
+            hospitals: ['Government Hospital Palayamkottai']
+        },
+        '627004': {
+            area: 'Pettai',
+            police: ['Pettai Police Station'],
+            hospitals: ['Government Hospital Pettai', 'Sangeetha Hospital']
+        },
+        '627005': {
+            area: 'Melapalayam',
+            police: ['Palayamkottai Police Station'],
+            hospitals: ['Melapalayam Government Hospital']
+        },
+        '627006': {
+            area: 'Tirunelveli Town',
+            police: ['Tirunelveli Junction Police Station'],
+            hospitals: ['Tirunelveli Medical College Hospital']
+        }
+    };
+
+    let selectedSeverity = '';
+    let pincodeTimer = null;
+
+    function selectPincode(pc, el) {
+        document.getElementById('pincode').value = pc;
+        document.querySelectorAll('.pincode-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        showNearby(pc);
+        loadVillages(pc);
+    }
+
+    function onPincodeInput(val) {
+        // highlight matching tab
+        document.querySelectorAll('.pincode-tab').forEach(t => t.classList.remove('active'));
+        const matching = [...document.querySelectorAll('.pincode-tab')].find(t => t.onclick.toString().includes(`'${val}'`));
+        if (matching) matching.classList.add('active');
+
+        clearTimeout(pincodeTimer);
+        if (val.length === 6) {
+            showNearby(val);
+            pincodeTimer = setTimeout(() => loadVillages(val), 400);
+        } else {
+            document.getElementById('nearbyBox').style.display = 'none';
+            document.getElementById('villageGroup').style.display = 'none';
+        }
+    }
+
+    function showNearby(pc) {
+        const data = PINCODE_MAP[pc];
+        if (!data) {
+            document.getElementById('nearbyBox').style.display = 'none';
+            return;
+        }
+        document.getElementById('nearbyPolice').innerHTML   = data.police.join('<br>');
+        document.getElementById('nearbyHospital').innerHTML = data.hospitals.join('<br>');
+        document.getElementById('nearbyBox').style.display = 'block';
+    }
+
+    function loadVillages(pincode) {
+        fetch(`/api/pincode/${pincode}/villages`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.message && data.status) {
+                    document.getElementById('villageGroup').style.display = 'none';
+                    return;
+                }
+                const sel = document.getElementById('village');
+                sel.innerHTML = '<option value="">Select village / area</option>';
+                (data.villages || []).forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v; opt.textContent = v;
+                    sel.appendChild(opt);
+                });
+                document.getElementById('villageGroup').style.display = 'block';
+            })
+            .catch(() => {
+                document.getElementById('villageGroup').style.display = 'none';
+            });
+    }
+
+    function selectSeverity(s) {
+        selectedSeverity = s;
+        document.getElementById('severity').value = s;
+        document.querySelectorAll('.severity-btn').forEach(b => b.className = 'severity-btn');
+        const idx = {low:0, medium:1, high:2}[s];
+        document.querySelectorAll('.severity-btn')[idx].className = `severity-btn selected-${s}`;
+    }
+
+    function submitReport() {
+        const reporterName  = document.getElementById('reporterName').value.trim();
+        const transport     = document.getElementById('transport').value;
+        const vehicleNumber = document.getElementById('vehicleNumber').value.trim().toUpperCase();
+        const pincode       = document.getElementById('pincode').value.trim();
+        const village       = document.getElementById('village').value;
+        const severity      = document.getElementById('severity').value;
+
+        if (!reporterName) { showAlert('error', 'Please enter reporter name'); return; }
+        if (!transport)    { showAlert('error', 'Please select transport type'); return; }
+        if (!vehicleNumber.match(/^TN72[A-Z0-9]+$/)) { showAlert('error', 'Invalid vehicle number! Must start with TN72'); return; }
+        if (!pincode || pincode.length !== 6) { showAlert('error', 'Please enter valid 6-digit pincode'); return; }
+        if (!village)   { showAlert('error', 'Please select a village / area'); return; }
+        if (!severity)  { showAlert('error', 'Please select severity level'); return; }
+
+        fetch('/api/accidents/report', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({reporterName, vehicleNumber, village, pincode, severity})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                hideAlert();
+                const pc = PINCODE_MAP[pincode];
+                document.getElementById('successContent').innerHTML =
+                    `<span class="case-id-big">${data.caseId}</span><br><br>` +
+                    `👮 <strong>Police Notified:</strong> ${(data.notifiedPolice||[]).join(', ') || (pc ? pc.police.join(', ') : '—')}<br>` +
+                    `🏥 <strong>Hospital Notified:</strong> ${(data.notifiedHospitals||[]).join(', ') || (pc ? pc.hospitals.join(', ') : '—')}<br>` +
+                    `📍 <strong>Area:</strong> ${village}, ${pincode}<br>` +
+                    `⚠️ <strong>Severity:</strong> ${severity.toUpperCase()}`;
+                document.getElementById('successBox').style.display = 'block';
+                // reset form
+                document.getElementById('reporterName').value = '';
+                document.getElementById('transport').value = '';
+                document.getElementById('vehicleNumber').value = '';
+                document.getElementById('pincode').value = '';
+                document.getElementById('village').value = '';
+                selectedSeverity = '';
+                document.getElementById('severity').value = '';
+                document.querySelectorAll('.severity-btn').forEach(b => b.className='severity-btn');
+                document.querySelectorAll('.pincode-tab').forEach(t => t.classList.remove('active'));
+                document.getElementById('nearbyBox').style.display = 'none';
+                document.getElementById('villageGroup').style.display = 'none';
+            } else {
+                showAlert(data.message && data.message.includes('Duplicate') ? 'warning' : 'error',
+                    data.message || 'Failed to report');
+            }
+        })
+        .catch(() => showAlert('error', 'Server error. Please try again.'));
+    }
+
+    function showAlert(type, msg) {
+        const el = document.getElementById('alertBox');
+        el.className = `alert ${type}`;
+        el.textContent = (type === 'error' ? '❌ ' : type === 'warning' ? '⚠️ ' : '✅ ') + msg;
+        el.style.display = 'block';
+    }
+    function hideAlert() {
+        document.getElementById('alertBox').style.display = 'none';
+    }
+</script>
+</body>
+</html>

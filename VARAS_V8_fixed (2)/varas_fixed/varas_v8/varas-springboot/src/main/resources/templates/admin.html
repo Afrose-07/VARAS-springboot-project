@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - VARAS - Vehicle Accident Reporting and Alerting System</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); min-height: 100vh; padding: 30px; }
+        .container { max-width: 1000px; margin: 0 auto; color: white; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; color: #a8c0ff; text-decoration: none; margin-bottom: 20px; }
+        .back-btn:hover { color: white; }
+        .card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+        .card h2 { font-size: 1.5rem; margin-bottom: 18px; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; margin-bottom: 5px; color: #a8c0ff; font-size: 0.85rem; font-weight: 600; }
+        input { width: 100%; padding: 11px 14px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-size: 1rem; outline: none; }
+        input:focus { border-color: rgba(255,200,0,0.7); }
+        .btn { padding: 11px 26px; border: none; border-radius: 8px; color: white; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .btn-gold { background: linear-gradient(135deg, #e6a817, #c68e0a); }
+        .btn-gold:hover { background: linear-gradient(135deg, #f0ba28, #e6a817); transform: translateY(-2px); }
+        .btn-sm { padding: 8px 16px; font-size: 0.85rem; margin: 4px; border-radius: 6px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; cursor: pointer; transition: all 0.2s; }
+        .btn-sm:hover { background: rgba(255,255,255,0.2); }
+        .btn-sm.active { background: rgba(255,200,0,0.25); border-color: rgba(255,200,0,0.5); color: #ffd700; }
+        .btn-green { background: linear-gradient(135deg, #2f9e44, #1c7430); padding: 7px 14px; font-size: 0.82rem; border-radius: 6px; border: none; color: white; cursor: pointer; }
+        .btn-green:hover { background: linear-gradient(135deg, #40c057, #2f9e44); }
+        .btn-red { background: linear-gradient(135deg, #e53e3e, #c53030); padding: 7px 14px; font-size: 0.82rem; border-radius: 6px; border: none; color: white; cursor: pointer; }
+        .btn-red:hover { background: linear-gradient(135deg, #fc5c5c, #e53e3e); }
+        .btn-blue { background: linear-gradient(135deg, #3b5bdb, #1c3faa); padding: 7px 14px; font-size: 0.82rem; border-radius: 6px; border: none; color: white; cursor: pointer; }
+        .btn-blue:hover { background: linear-gradient(135deg, #4c6ef5, #3b5bdb); }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-top: 12px; }
+        .alert.error { background: rgba(255,60,60,0.2); border: 1px solid rgba(255,60,60,0.4); color: #ff9090; }
+        .alert.success { background: rgba(60,200,100,0.2); border: 1px solid rgba(60,200,100,0.4); color: #90ee90; }
+        .dashboard { display: none; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+        .stat-card { background: rgba(255,255,255,0.06); border-radius: 10px; padding: 16px; text-align: center; }
+        .stat-card .num { font-size: 2rem; font-weight: 800; }
+        .stat-card .lbl { font-size: 0.8rem; color: #a8c0ff; margin-top: 4px; }
+        .stat-high .num { color: #ff9090; }
+        .stat-med .num { color: #ffd070; }
+        .stat-low .num { color: #90ee90; }
+        .menu-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .content-area { min-height: 100px; }
+        .accident-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+        .accident-item .case-id { font-weight: 700; color: #ffd700; }
+        .accident-item .details { font-size: 0.85rem; color: #a8c0ff; margin-top: 6px; line-height: 1.7; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; margin-left: 6px; }
+        .badge-high { background: rgba(255,68,68,0.3); color: #ff9090; }
+        .badge-medium { background: rgba(255,170,0,0.3); color: #ffd070; }
+        .badge-low { background: rgba(68,187,68,0.3); color: #90ee90; }
+        .search-row { display: flex; gap: 10px; margin-bottom: 14px; }
+        .search-row input { flex: 1; }
+        .search-row .btn-sm { white-space: nowrap; padding: 10px 18px; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { background: rgba(255,255,255,0.1); padding: 10px 12px; text-align: left; color: #a8c0ff; }
+        td { padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.07); vertical-align: middle; }
+        .empty { text-align: center; color: #6a7fa8; padding: 30px; }
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; justify-content: center; align-items: center; }
+        .modal-overlay.open { display: flex; }
+        .modal { background: #16213e; border: 1px solid rgba(255,255,255,0.2); border-radius: 16px; padding: 28px; width: 460px; max-width: 95vw; }
+        .modal h3 { margin-bottom: 18px; color: #ffd700; }
+        .modal input { margin-bottom: 12px; }
+        .modal-btns { display: flex; gap: 10px; margin-top: 6px; }
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .action-btns { display: flex; gap: 6px; }
+        .pincode-search-row { display: flex; gap: 8px; margin-bottom: 14px; }
+        .pincode-search-row input { flex: 1; padding: 8px 12px; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/" class="back-btn">← Back to Home</a>
+
+    <!-- Login Card -->
+    <div class="card" id="loginCard">
+        <h2>👑 Admin Login</h2>
+        <p style="color:#a8c0ff;margin-bottom:18px;font-size:0.9rem;">Default credentials: admin / 123</p>
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="username" placeholder="admin" value="admin">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="123" value="123">
+        </div>
+        <button class="btn btn-gold" onclick="adminLogin()">🔐 Login</button>
+        <div class="alert" id="loginAlert" style="display:none"></div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <!-- Stats -->
+        <div class="card" id="statsCard">
+            <h2>📊 Quick Statistics</h2>
+            <div class="stats-grid" id="statsGrid"></div>
+        </div>
+
+        <!-- Menu -->
+        <div class="card">
+            <h2>👑 Admin Dashboard</h2>
+            <div class="menu-row">
+                <button class="btn-sm" onclick="loadAll()">📋 All Reports</button>
+                <button class="btn-sm" onclick="showStatsPanel()">📊 Statistics</button>
+                <button class="btn-sm" onclick="showSearchDate()">🔍 Search by Date</button>
+                <button class="btn-sm" onclick="showSearchPincode()">📮 Search by Pincode</button>
+                <button class="btn-sm" onclick="showSearchCase()">🔖 Search by Case ID</button>
+                <button class="btn-sm" onclick="showSearchSeverity()">⚠️ By Severity</button>
+                <button class="btn-sm" onclick="loadPoliceStations()">👮 Police Stations</button>
+                <button class="btn-sm" onclick="loadHospitals()">🏥 Hospitals</button>
+                <button class="btn-sm" onclick="loadPincodeReport()">📮 Pincode Report</button>
+            </div>
+            <div class="content-area" id="contentArea">
+                <div class="empty">Select an option above to view data</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Police Station Modal -->
+<div class="modal-overlay" id="policeModal">
+    <div class="modal">
+        <h3 id="policeModalTitle">👮 Add Police Station</h3>
+        <input type="hidden" id="policeEditId">
+        <div class="form-group">
+            <label>Station Name</label>
+            <input type="text" id="policeName" placeholder="e.g. Tirunelveli Junction Police Station">
+        </div>
+        <div class="form-group">
+            <label>Pincodes (comma separated)</label>
+            <input type="text" id="policePincodes" placeholder="e.g. 627001, 627002">
+        </div>
+        <div id="policeModalAlert" style="display:none;margin-bottom:10px;padding:10px;border-radius:8px;"></div>
+        <div class="modal-btns">
+            <button class="btn btn-gold" onclick="savePoliceStation()">💾 Save</button>
+            <button class="btn-sm" onclick="closeModal('policeModal')" style="padding:11px 20px;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Hospital Modal -->
+<div class="modal-overlay" id="hospitalModal">
+    <div class="modal">
+        <h3 id="hospitalModalTitle">🏥 Add Hospital</h3>
+        <input type="hidden" id="hospitalEditId">
+        <div class="form-group">
+            <label>Hospital Name</label>
+            <input type="text" id="hospitalName" placeholder="e.g. Tirunelveli Medical College Hospital">
+        </div>
+        <div class="form-group">
+            <label>Pincodes (comma separated)</label>
+            <input type="text" id="hospitalPincodes" placeholder="e.g. 627001, 627011">
+        </div>
+        <div id="hospitalModalAlert" style="display:none;margin-bottom:10px;padding:10px;border-radius:8px;"></div>
+        <div class="modal-btns">
+            <button class="btn btn-gold" onclick="saveHospital()">💾 Save</button>
+            <button class="btn-sm" onclick="closeModal('hospitalModal')" style="padding:11px 20px;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function adminLogin() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        fetch('/api/admin/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username, password})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('loginCard').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                loadStats();
+            } else {
+                const el = document.getElementById('loginAlert');
+                el.className = 'alert error';
+                el.textContent = '❌ ' + (data.message || 'Invalid credentials! Use: admin / 123');
+                el.style.display = 'block';
+            }
+        });
+    }
+
+    function loadStats() {
+        fetch('/api/admin/statistics')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('statsGrid').innerHTML = `
+                    <div class="stat-card"><div class="num">${data.totalAccidents}</div><div class="lbl">Total Accidents</div></div>
+                    <div class="stat-card stat-high"><div class="num">${data.highSeverity}</div><div class="lbl">🔴 High Severity</div></div>
+                    <div class="stat-card stat-med"><div class="num">${data.mediumSeverity}</div><div class="lbl">🟡 Medium Severity</div></div>
+                    <div class="stat-card stat-low"><div class="num">${data.lowSeverity}</div><div class="lbl">🟢 Low Severity</div></div>
+                    <div class="stat-card"><div class="num">${data.acceptedPolice}</div><div class="lbl">👮 Police Dispatched</div></div>
+                    <div class="stat-card"><div class="num">${data.acceptedHospital}</div><div class="lbl">🏥 Ambulance Dispatched</div></div>
+                `;
+            });
+    }
+
+    function showStatsPanel() {
+        fetch('/api/admin/statistics')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('contentArea').innerHTML = `<div style="line-height:2">
+                    <div>📈 Total Accidents: <strong>${data.totalAccidents}</strong></div>
+                    <div>🔴 High Severity: <strong>${data.highSeverity}</strong>${data.highPercent !== undefined ? ` (${data.highPercent}%)` : ''}</div>
+                    <div>🟡 Medium Severity: <strong>${data.mediumSeverity}</strong>${data.mediumPercent !== undefined ? ` (${data.mediumPercent}%)` : ''}</div>
+                    <div>🟢 Low Severity: <strong>${data.lowSeverity}</strong>${data.lowPercent !== undefined ? ` (${data.lowPercent}%)` : ''}</div>
+                    <div>👮 Police Dispatched: <strong>${data.acceptedPolice}</strong></div>
+                    <div>🏥 Ambulance Dispatched: <strong>${data.acceptedHospital}</strong></div>
+                </div>`;
+            });
+    }
+
+    function loadAll() {
+        fetch('/api/admin/accidents')
+            .then(r => r.json())
+            .then(data => renderAccidents(data.accidents, `All Reports (${data.total})`));
+    }
+
+    function showSearchDate() {
+        document.getElementById('contentArea').innerHTML = `
+            <div class="search-row">
+                <input type="text" id="searchInput" placeholder="DD/MM/YYYY e.g. 28/04/2026">
+                <button class="btn-sm" onclick="doSearch('date')">🔍 Search</button>
+            </div>
+            <div id="searchResults"></div>`;
+    }
+
+    function showSearchPincode() {
+        document.getElementById('contentArea').innerHTML = `
+            <div class="search-row">
+                <input type="text" id="searchInput" placeholder="Enter PINCODE e.g. 627002">
+                <button class="btn-sm" onclick="doSearch('pincode')">🔍 Search</button>
+            </div>
+            <div id="searchResults"></div>`;
+    }
+
+    function showSearchCase() {
+        document.getElementById('contentArea').innerHTML = `
+            <div class="search-row">
+                <input type="text" id="searchInput" placeholder="Enter Case ID e.g. TIRUNELVELI101">
+                <button class="btn-sm" onclick="doSearch('case')">🔍 Search</button>
+            </div>
+            <div id="searchResults"></div>`;
+    }
+
+    function showSearchSeverity() {
+        document.getElementById('contentArea').innerHTML = `
+            <div style="margin-bottom:12px">
+                <button class="btn-sm" onclick="doSeveritySearch('high')">🔴 High</button>
+                <button class="btn-sm" onclick="doSeveritySearch('medium')">🟡 Medium</button>
+                <button class="btn-sm" onclick="doSeveritySearch('low')">🟢 Low</button>
+            </div>
+            <div id="searchResults"></div>`;
+    }
+
+    function doSearch(type) {
+        const val = document.getElementById('searchInput').value.trim();
+        if (!val) return;
+        let url = '';
+        // FIX: date uses ?date= query param to avoid '/' routing issue
+        if (type === 'date') url = `/api/admin/search/date?date=${encodeURIComponent(val)}`;
+        else if (type === 'pincode') url = `/api/admin/search/pincode/${val}`;
+        else if (type === 'case') url = `/api/admin/search/case/${val}`;
+
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('searchResults');
+                if (data.accident) {
+                    container.innerHTML = renderAccidentCard(data.accident);
+                } else {
+                    renderAccidentsInto(container, data.accidents, `Results (${data.total})`);
+                }
+            })
+            .catch(err => {
+                document.getElementById('searchResults').innerHTML = `<div class="empty">❌ ${err.message || 'Not found'}</div>`;
+            });
+    }
+
+    function doSeveritySearch(sev) {
+        fetch(`/api/admin/search/severity/${sev}`)
+            .then(r => r.json())
+            .then(data => renderAccidentsInto(document.getElementById('searchResults'), data.accidents, `${sev.toUpperCase()} Severity (${data.total})`));
+    }
+
+    // ============================================================
+    // POLICE STATIONS - CRUD
+    // ============================================================
+    function loadPoliceStations() {
+        fetch('/api/admin/police-stations')
+            .then(r => r.json())
+            .then(data => {
+                const rows = data.map((s, i) => `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${s.name}</td>
+                        <td>${s.pincodes || '-'}</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-blue" onclick="openEditPolice(${s.id}, '${escapeJs(s.name)}', '${escapeJs(s.pincodes || '')}')">✏️ Edit</button>
+                                <button class="btn-red" onclick="deletePolice(${s.id}, '${escapeJs(s.name)}')">🗑️ Delete</button>
+                            </div>
+                        </td>
+                    </tr>`).join('');
+
+                document.getElementById('contentArea').innerHTML = `
+                    <div class="section-header">
+                        <h4>👮 Police Stations - Tirunelveli District (${data.length})</h4>
+                        <button class="btn-green" onclick="openAddPolice()">➕ Add Station</button>
+                    </div>
+                    <div class="pincode-search-row">
+                        <input type="text" id="policeSearchPin" placeholder="Search by pincode...">
+                        <button class="btn-sm" onclick="searchPoliceByPin()">🔍 Search</button>
+                        <button class="btn-sm" onclick="loadPoliceStations()">🔄 Reset</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>#</th><th>Station Name</th><th>Pincodes</th><th>Actions</th></tr></thead>
+                            <tbody id="policeTableBody">${rows || '<tr><td colspan="4" class="empty">No stations found</td></tr>'}</tbody>
+                        </table>
+                    </div>`;
+            });
+    }
+
+    function searchPoliceByPin() {
+        const pin = document.getElementById('policeSearchPin').value.trim();
+        if (!pin) { loadPoliceStations(); return; }
+        fetch(`/api/admin/police-stations/search?pincode=${pin}`)
+            .then(r => r.json())
+            .then(data => {
+                const rows = data.map((s, i) => `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${s.name}</td>
+                        <td>${s.pincodes || '-'}</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-blue" onclick="openEditPolice(${s.id}, '${escapeJs(s.name)}', '${escapeJs(s.pincodes || '')}')">✏️ Edit</button>
+                                <button class="btn-red" onclick="deletePolice(${s.id}, '${escapeJs(s.name)}')">🗑️ Delete</button>
+                            </div>
+                        </td>
+                    </tr>`).join('');
+                document.getElementById('policeTableBody').innerHTML = rows || '<tr><td colspan="4" class="empty">No results for pincode ' + pin + '</td></tr>';
+            });
+    }
+
+    function openAddPolice() {
+        document.getElementById('policeModalTitle').textContent = '👮 Add Police Station';
+        document.getElementById('policeEditId').value = '';
+        document.getElementById('policeName').value = '';
+        document.getElementById('policePincodes').value = '';
+        document.getElementById('policeModalAlert').style.display = 'none';
+        document.getElementById('policeModal').classList.add('open');
+    }
+
+    function openEditPolice(id, name, pincodes) {
+        document.getElementById('policeModalTitle').textContent = '✏️ Edit Police Station';
+        document.getElementById('policeEditId').value = id;
+        document.getElementById('policeName').value = name;
+        document.getElementById('policePincodes').value = pincodes;
+        document.getElementById('policeModalAlert').style.display = 'none';
+        document.getElementById('policeModal').classList.add('open');
+    }
+
+    function savePoliceStation() {
+        const id = document.getElementById('policeEditId').value;
+        const name = document.getElementById('policeName').value.trim();
+        const pincodes = document.getElementById('policePincodes').value.trim();
+        const alertEl = document.getElementById('policeModalAlert');
+
+        if (!name) {
+            alertEl.style.display = 'block';
+            alertEl.style.background = 'rgba(255,60,60,0.2)';
+            alertEl.style.color = '#ff9090';
+            alertEl.textContent = '❌ Station name is required';
+            return;
+        }
+
+        const url = id ? `/api/admin/police-stations/${id}` : '/api/admin/police-stations';
+        const method = id ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method,
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name, pincodes})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                closeModal('policeModal');
+                loadPoliceStations();
+            } else {
+                alertEl.style.display = 'block';
+                alertEl.style.background = 'rgba(255,60,60,0.2)';
+                alertEl.style.color = '#ff9090';
+                alertEl.textContent = '❌ ' + (data.message || 'Error saving station');
+            }
+        })
+        .catch(() => {
+            alertEl.style.display = 'block';
+            alertEl.textContent = '❌ Server error';
+        });
+    }
+
+    function deletePolice(id, name) {
+        if (!confirm(`Delete "${name}"?\nThis cannot be undone.`)) return;
+        fetch(`/api/admin/police-stations/${id}`, { method: 'DELETE' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) loadPoliceStations();
+                else alert('❌ ' + data.message);
+            });
+    }
+
+    // ============================================================
+    // HOSPITALS - CRUD
+    // ============================================================
+    function loadHospitals() {
+        fetch('/api/admin/hospitals')
+            .then(r => r.json())
+            .then(data => {
+                const rows = data.map((h, i) => `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${h.name}</td>
+                        <td>${h.pincodes || '-'}</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-blue" onclick="openEditHospital(${h.id}, '${escapeJs(h.name)}', '${escapeJs(h.pincodes || '')}')">✏️ Edit</button>
+                                <button class="btn-red" onclick="deleteHospital(${h.id}, '${escapeJs(h.name)}')">🗑️ Delete</button>
+                            </div>
+                        </td>
+                    </tr>`).join('');
+
+                document.getElementById('contentArea').innerHTML = `
+                    <div class="section-header">
+                        <h4>🏥 Hospitals - Tirunelveli District (${data.length})</h4>
+                        <button class="btn-green" onclick="openAddHospital()">➕ Add Hospital</button>
+                    </div>
+                    <div class="pincode-search-row">
+                        <input type="text" id="hospitalSearchPin" placeholder="Search by pincode...">
+                        <button class="btn-sm" onclick="searchHospitalByPin()">🔍 Search</button>
+                        <button class="btn-sm" onclick="loadHospitals()">🔄 Reset</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>#</th><th>Hospital Name</th><th>Pincodes</th><th>Actions</th></tr></thead>
+                            <tbody id="hospitalTableBody">${rows || '<tr><td colspan="4" class="empty">No hospitals found</td></tr>'}</tbody>
+                        </table>
+                    </div>`;
+            });
+    }
+
+    function searchHospitalByPin() {
+        const pin = document.getElementById('hospitalSearchPin').value.trim();
+        if (!pin) { loadHospitals(); return; }
+        fetch(`/api/admin/hospitals/search?pincode=${pin}`)
+            .then(r => r.json())
+            .then(data => {
+                const rows = data.map((h, i) => `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${h.name}</td>
+                        <td>${h.pincodes || '-'}</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-blue" onclick="openEditHospital(${h.id}, '${escapeJs(h.name)}', '${escapeJs(h.pincodes || '')}')">✏️ Edit</button>
+                                <button class="btn-red" onclick="deleteHospital(${h.id}, '${escapeJs(h.name)}')">🗑️ Delete</button>
+                            </div>
+                        </td>
+                    </tr>`).join('');
+                document.getElementById('hospitalTableBody').innerHTML = rows || '<tr><td colspan="4" class="empty">No results for pincode ' + pin + '</td></tr>';
+            });
+    }
+
+    function openAddHospital() {
+        document.getElementById('hospitalModalTitle').textContent = '🏥 Add Hospital';
+        document.getElementById('hospitalEditId').value = '';
+        document.getElementById('hospitalName').value = '';
+        document.getElementById('hospitalPincodes').value = '';
+        document.getElementById('hospitalModalAlert').style.display = 'none';
+        document.getElementById('hospitalModal').classList.add('open');
+    }
+
+    function openEditHospital(id, name, pincodes) {
+        document.getElementById('hospitalModalTitle').textContent = '✏️ Edit Hospital';
+        document.getElementById('hospitalEditId').value = id;
+        document.getElementById('hospitalName').value = name;
+        document.getElementById('hospitalPincodes').value = pincodes;
+        document.getElementById('hospitalModalAlert').style.display = 'none';
+        document.getElementById('hospitalModal').classList.add('open');
+    }
+
+    function saveHospital() {
+        const id = document.getElementById('hospitalEditId').value;
+        const name = document.getElementById('hospitalName').value.trim();
+        const pincodes = document.getElementById('hospitalPincodes').value.trim();
+        const alertEl = document.getElementById('hospitalModalAlert');
+
+        if (!name) {
+            alertEl.style.display = 'block';
+            alertEl.style.background = 'rgba(255,60,60,0.2)';
+            alertEl.style.color = '#ff9090';
+            alertEl.textContent = '❌ Hospital name is required';
+            return;
+        }
+
+        const url = id ? `/api/admin/hospitals/${id}` : '/api/admin/hospitals';
+        const method = id ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method,
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({name, pincodes})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                closeModal('hospitalModal');
+                loadHospitals();
+            } else {
+                alertEl.style.display = 'block';
+                alertEl.style.background = 'rgba(255,60,60,0.2)';
+                alertEl.style.color = '#ff9090';
+                alertEl.textContent = '❌ ' + (data.message || 'Error saving hospital');
+            }
+        })
+        .catch(() => {
+            alertEl.style.display = 'block';
+            alertEl.textContent = '❌ Server error';
+        });
+    }
+
+    function deleteHospital(id, name) {
+        if (!confirm(`Delete "${name}"?\nThis cannot be undone.`)) return;
+        fetch(`/api/admin/hospitals/${id}`, { method: 'DELETE' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) loadHospitals();
+                else alert('❌ ' + data.message);
+            });
+    }
+
+    // ============================================================
+    // PINCODE REPORT
+    // ============================================================
+    function loadPincodeReport() {
+        document.querySelectorAll('.btn-sm').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        const ca = document.getElementById('contentArea');
+        ca.innerHTML = '<div style="color:#a8c0ff;padding:20px;text-align:center;">Loading pincode report...</div>';
+        fetch('/api/admin/pincode-report')
+            .then(r => r.json())
+            .then(data => {
+                const sevColor = {HIGH:'#ff9090', MEDIUM:'#ffd070', LOW:'#90ee90'};
+                ca.innerHTML = `<h4 style="margin-bottom:14px">📮 Pincode-wise Accident Report — 5 Key TVL Areas</h4>` +
+                    data.map(p => `
+                        <div class="accident-item" style="margin-bottom:10px;">
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+                                <div>
+                                    <div class="case-id" style="font-size:1rem;">${p.pincode} — ${p.area}</div>
+                                    <div class="details" style="margin-top:6px;">
+                                        👮 Police: ${(p.police||[]).join(', ')}<br>
+                                        🏥 Hospital: ${(p.hospitals||[]).join(', ')}
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                                    <div style="text-align:center;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px 14px;">
+                                        <div style="font-size:1.4rem;font-weight:800;">${p.total}</div>
+                                        <div style="font-size:0.75rem;color:#a8c0ff;">Total</div>
+                                    </div>
+                                    <div style="text-align:center;background:rgba(255,90,90,0.1);border-radius:8px;padding:8px 14px;">
+                                        <div style="font-size:1.4rem;font-weight:800;color:#ff9090;">${p.high}</div>
+                                        <div style="font-size:0.75rem;color:#a8c0ff;">High</div>
+                                    </div>
+                                    <div style="text-align:center;background:rgba(255,200,0,0.1);border-radius:8px;padding:8px 14px;">
+                                        <div style="font-size:1.4rem;font-weight:800;color:#ffd070;">${p.medium}</div>
+                                        <div style="font-size:0.75rem;color:#a8c0ff;">Medium</div>
+                                    </div>
+                                    <div style="text-align:center;background:rgba(68,187,68,0.1);border-radius:8px;padding:8px 14px;">
+                                        <div style="font-size:1.4rem;font-weight:800;color:#90ee90;">${p.low}</div>
+                                        <div style="font-size:0.75rem;color:#a8c0ff;">Low</div>
+                                    </div>
+                                    <div style="text-align:center;background:rgba(255,200,0,0.08);border-radius:8px;padding:8px 14px;">
+                                        <div style="font-size:1.4rem;font-weight:800;color:#ffd700;">${p.pending}</div>
+                                        <div style="font-size:0.75rem;color:#a8c0ff;">Pending</div>
+                                    </div>
+                                    <div style="text-align:center;background:rgba(60,200,100,0.1);border-radius:8px;padding:8px 14px;">
+                                        <div style="font-size:1.4rem;font-weight:800;color:#90ee90;">${p.accepted}</div>
+                                        <div style="font-size:0.75rem;color:#a8c0ff;">Done</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`).join('');
+            })
+            .catch(() => { ca.innerHTML = '<div class="empty">❌ Error loading pincode report.</div>'; });
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('open');
+    }
+
+    function escapeJs(str) {
+        return (str || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+
+    function renderAccidents(accidents, title) {
+        document.getElementById('contentArea').innerHTML =
+            `<h4 style="margin-bottom:12px">${title}</h4>` +
+            (accidents.length === 0 ? '<div class="empty">📭 No accidents found.</div>' :
+            accidents.map(a => renderAccidentCard(a)).join(''));
+    }
+
+    function renderAccidentsInto(container, accidents, title) {
+        container.innerHTML =
+            `<h4 style="margin-bottom:12px">${title}</h4>` +
+            (accidents.length === 0 ? '<div class="empty">📭 No accidents found.</div>' :
+            accidents.map(a => renderAccidentCard(a)).join(''));
+    }
+
+    function renderAccidentCard(a) {
+        const sev = (a.severity || '').toLowerCase();
+        const policeStatus = a.acceptedPolice ? `✅ ${a.acceptedPolice}` : '⏳ Not Yet Accepted';
+        const hospitalStatus = a.acceptedHospital ? `✅ ${a.acceptedHospital}` : '⏳ Not Yet Accepted';
+        return `<div class="accident-item">
+            <div class="case-id">${a.caseId} <span class="badge badge-${sev}">${(a.severity||'').toUpperCase()}</span></div>
+            <div class="details">
+                👤 Reporter: ${a.reporterName} | 🚗 Vehicle: ${a.vehicleNumber}<br>
+                🏘️ Village: ${a.village} | 📮 Pincode: ${a.pincode}<br>
+                📅 Date: ${a.formattedDate || a.reportDateTime || ''}<br>
+                📋 Status: ${a.status}<br>
+                👮 Police: ${policeStatus}<br>
+                🏥 Hospital: ${hospitalStatus}
+            </div>
+        </div>`;
+    }
+
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+        el.addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('open');
+        });
+    });
+</script>
+</body>
+</html>

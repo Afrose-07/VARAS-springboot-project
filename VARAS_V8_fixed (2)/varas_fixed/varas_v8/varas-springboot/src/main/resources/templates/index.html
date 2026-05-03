@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VARAS - Vehicle Accident Reporting and Alerting System</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .container { text-align: center; color: white; max-width: 900px; width: 100%; padding: 30px; }
+        .header { margin-bottom: 40px; }
+        .header h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: 2px; text-shadow: 0 0 20px rgba(255,100,100,0.5); }
+        .header .subtitle { font-size: 1.1rem; color: #a8c0ff; margin-top: 8px; }
+        .header .district { color: #ffd700; font-weight: 600; font-size: 1.2rem; margin-top: 5px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 600px; margin: 0 auto; }
+        .menu-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 30px 20px; cursor: pointer; transition: all 0.3s ease; text-decoration: none; color: white; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .menu-card:hover { background: rgba(255,255,255,0.18); transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.4); }
+        .menu-card .icon { font-size: 3rem; }
+        .menu-card .title { font-size: 1.2rem; font-weight: 700; }
+        .menu-card .desc { font-size: 0.85rem; color: #a8c0ff; text-align: center; }
+        .report-card { background: linear-gradient(135deg, rgba(255,60,60,0.3), rgba(200,0,0,0.2)); border-color: rgba(255,100,100,0.4); }
+        .police-card { background: linear-gradient(135deg, rgba(60,100,255,0.3), rgba(0,50,200,0.2)); border-color: rgba(100,140,255,0.4); }
+        .hospital-card { background: linear-gradient(135deg, rgba(60,200,100,0.3), rgba(0,150,50,0.2)); border-color: rgba(100,220,140,0.4); }
+        .admin-card { background: linear-gradient(135deg, rgba(255,200,0,0.3), rgba(200,140,0,0.2)); border-color: rgba(255,220,80,0.4); }
+        .footer { margin-top: 40px; color: #6a7fa8; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🚨 VARAS</h1>
+        <div class="subtitle">Vehicle Accident Reporting and Alerting System</div>
+        <div class="district">District: TIRUNELVELI</div>
+    </div>
+
+    <div class="menu-grid">
+        <a href="/report" class="menu-card report-card">
+            <div class="icon">📋</div>
+            <div class="title">Report Accident</div>
+            <div class="desc">Report a vehicle accident in Tirunelveli district</div>
+        </a>
+        <a href="/police" class="menu-card police-card">
+            <div class="icon">👮</div>
+            <div class="title">Police Login</div>
+            <div class="desc">View and accept accident cases</div>
+        </a>
+        <a href="/hospital" class="menu-card hospital-card">
+            <div class="icon">🏥</div>
+            <div class="title">Hospital Login</div>
+            <div class="desc">View emergency cases and dispatch ambulance</div>
+        </a>
+        <a href="/admin" class="menu-card admin-card">
+            <div class="icon">👑</div>
+            <div class="title">Admin Login</div>
+            <div class="desc">View reports, statistics and manage system</div>
+        </a>
+    </div>
+
+    <div class="footer">
+        <p>Powered by Spring Boot | SQLite | REST API</p>
+    </div>
+</div>
+</body>
+</html>
